@@ -1,0 +1,88 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+@model WebApplication1.Models.CalculatorModel
+
+@{
+    List<string> history = Session["history"] as List<string>;
+}
+
+@using (Html.BeginForm("Calculate", "Calculator", FormMethod.Post))
+{
+    <div>
+        @Html.LabelFor(m => m.Operand1)
+        @Html.TextBoxFor(m => m.Operand1, new { @class = "textBoxStyle" })
+        @Html.ValidationMessageFor(m => m.Operand1)
+    </div>
+    <div>
+        @Html.LabelFor(m => m.Operation)
+        @Html.DropDownListFor(m => m.Operation, new SelectList(new[] { "+", "-", "*", "/" }))
+    </div>
+    <div>
+        @Html.LabelFor(m => m.Operand2)
+        @Html.TextBoxFor(m => m.Operand2, new { @class = "textBoxStyle" })
+        @Html.ValidationMessageFor(m => m.Operand2)
+    </div>
+    <div>
+        <button class="btn" type="submit" name="submitbutton" value="calculate">Рассчитать</button>
+        <button class="btn" type="submit" name="submitbutton" value="clear">Очистить</button>
+    </div>
+
+}
+
+@if (Model != null)
+{
+    <p>
+        @ViewBag.Message
+    </p>
+}
+
+@if (history != null && history.Count > 0)
+{
+    <div>История операций:</div>
+    <ul>
+        @foreach (string item in history)
+        {
+            int opSymbolIndex = -1;
+            char[] operationSymbols = new char[] { '+', '-', '/', '*' };
+            int index = item.IndexOfAny(operationSymbols);
+            while (index >= 0 && index < item.Length - 1)
+            {
+                opSymbolIndex = index;
+                index = item.IndexOfAny(operationSymbols, index + 1);
+            }
+
+            if (opSymbolIndex >= 0 && opSymbolIndex < item.Length - 1)
+            {
+                string operationSymbol = item[opSymbolIndex].ToString();
+                string operationWord = "";
+                switch (operationSymbol)
+                {
+                    case "+":
+                        operationWord = "плюс";
+                        break;
+                    case "-":
+                        operationWord = "минус";
+                        break;
+                    case "/":
+                        operationWord = "делить";
+                        break;
+                    case "*":
+                        operationWord = "умножить";
+                        break;
+                }
+
+                string itemWithWords = item.Remove(opSymbolIndex, 1).Insert(opSymbolIndex, operationWord);
+
+                <li>@itemWithWords</li>
+            }
+            else
+            {
+                <li>@item</li>
+            }
+        }
+    </ul>
+}
+
+@Html.ActionLink("Посмотреть историю операций", "Result", "Calculator")
